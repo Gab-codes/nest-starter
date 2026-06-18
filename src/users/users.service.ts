@@ -6,6 +6,12 @@ import type { NewUser } from 'src/db/schema';
 
 @Injectable()
 export class UsersService {
+  async findByVerificationToken(token: string) {
+    return db.query.users.findFirst({
+      where: eq(users.verificationToken, token),
+    });
+  }
+
   async findByEmail(email: string) {
     return db.query.users.findFirst({ where: eq(users.email, email) });
   }
@@ -19,7 +25,7 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, data: NewUser) {
+  async update(id: string, data: Partial<NewUser>) {
     const [user] = await db
       .update(users)
       .set({ ...data, updatedAt: new Date() })
