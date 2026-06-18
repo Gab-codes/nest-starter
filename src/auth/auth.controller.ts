@@ -22,6 +22,8 @@ import { LoginDto } from './dto/login.dto';
 import type { User } from 'src/db/schema';
 import { Public } from 'src/common/decorators/public.decorators';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -38,10 +40,10 @@ export class AuthController {
 
   //GET /api/auth/verify-email?token=
   @Public()
-  @Get('verify-emaul')
+  @Get('verify-email')
   @ApiOperation({ summary: 'Verify email address and auto-login' })
   async verifyEmail(
-    @Query() token: string,
+    @Query('token') token: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.verifyEmail(token, res);
@@ -91,7 +93,7 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the current authenticated user' })
-  async me(@CurrentUser() user: User, @Res() res: Response) {
+  async me(@CurrentUser() user: User) {
     return {
       id: user.id,
       email: user.email,
@@ -99,5 +101,23 @@ export class AuthController {
       role: user.role,
       isVerified: user.isVerified,
     };
+  }
+
+  //POST /api/auth/forgot-password
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request a password reset email' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  // POST /api/auth/reset-password
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password using token from email' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.password);
   }
 }

@@ -85,6 +85,58 @@ export class AuthService {
     };
   }
 
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email);
+
+    if (!user) {
+      return {
+        message:
+          'If an account with that email exists, a reset link has been sent.',
+      };
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1hr
+
+    await this.usersService.update(user.id, {
+      resetToken,
+      resetTokenExpiresAt,
+    });
+
+    this.emailService.sendPasswordResetEmail(user.email, resetToken);
+
+    return {
+      message:
+        'If an account with that email exists, a reset link has been sent',
+    };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.usersService.findByResetToken(token);
+
+    if (!user || !user.resetToken) {
+      throw new BadRequestException('Invalid reset token');
+    }
+
+    if (user.resetTokenExpiresAt && user.resetTokenExpiresAt < new Date()) {
+      throw new BadRequestException(
+        'Reset token has expired. Please request a new one',
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    await this.usersService.update(user.id, {
+      passwordHash,
+      resetToken: null,
+      resetTokenExpiresAt: null,
+    });
+
+    return {
+      message: 'Password reset successful. You can now log in.',
+    };
+  }
+
   async refresh(refreshToken: string, res: Response) {
     if (!refreshToken) throw new UnauthorizedException('Refresh Token missing');
     let payload: { sub: string; email: string };
@@ -188,7 +240,7 @@ export class AuthService {
     await this.usersService.update(userId, { refreshTokenHash });
   }
 
-  private async setRefreshTokenCookie(res: Response, refreshToken: string) {
+  private setRefreshTokenCookie(res: Response, refreshToken: string) {
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
