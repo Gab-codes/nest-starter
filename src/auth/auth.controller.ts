@@ -22,6 +22,8 @@ import { LoginDto } from './dto/login.dto';
 import type { User } from 'src/db/schema';
 import { Public } from 'src/common/decorators/public.decorators';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -99,5 +101,23 @@ export class AuthController {
       role: user.role,
       isVerified: user.isVerified,
     };
+  }
+
+  //POST /api/auth/forgot-password
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request a password reset email' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  // POST /api/auth/reset-password
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password using token from email' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.password);
   }
 }
