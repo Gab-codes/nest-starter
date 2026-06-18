@@ -188,7 +188,7 @@ export class AuthService {
     await this.usersService.update(userId, { refreshTokenHash });
   }
 
-  private async setRefreshTokenCookie(res: Response, refreshToken: string) {
+  private setRefreshTokenCookie(res: Response, refreshToken: string) {
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

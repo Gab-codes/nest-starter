@@ -38,10 +38,10 @@ export class AuthController {
 
   //GET /api/auth/verify-email?token=
   @Public()
-  @Get('verify-emaul')
+  @Get('verify-email')
   @ApiOperation({ summary: 'Verify email address and auto-login' })
   async verifyEmail(
-    @Query() token: string,
+    @Query('token') token: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.verifyEmail(token, res);
@@ -91,7 +91,7 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the current authenticated user' })
-  async me(@CurrentUser() user: User, @Res() res: Response) {
+  async me(@CurrentUser() user: User) {
     return {
       id: user.id,
       email: user.email,
