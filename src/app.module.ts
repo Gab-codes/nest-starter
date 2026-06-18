@@ -7,6 +7,7 @@ import { JwtAuthGaurd } from './common/guards/jwt-auth.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from 'nestjs-pino';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGaurd },
+    { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })
